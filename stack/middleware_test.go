@@ -22,6 +22,7 @@ func TestPermissionSandbox(t *testing.T) {
 	require := require.New(t)
 
 	// generic args
+	// func NewContext(chain string, height uint64, logger log.Logger) sdk.Context
 	ctx := NewContext("test-chain", 20, log.NewNopLogger())
 	store := state.NewMemKVStore()
 	raw := NewRawTx([]byte{1, 2, 3, 4})

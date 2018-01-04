@@ -65,6 +65,7 @@ func NewMemKVStore() *MemKVStore {
 	}
 }
 
+// key传入时是字节数组，将其转换为string类型-> map[string][]byte    value是字节数组slice
 func (m *MemKVStore) Set(key []byte, value []byte) {
 	m.m[string(key)] = value
 }
@@ -73,6 +74,7 @@ func (m *MemKVStore) Get(key []byte) (value []byte) {
 	return m.m[string(key)]
 }
 
+//给定key下是否有相应的value值
 func (m *MemKVStore) Has(key []byte) (has bool) {
 	_, ok := m.m[string(key)]
 	return ok
@@ -80,10 +82,20 @@ func (m *MemKVStore) Has(key []byte) (has bool) {
 
 func (m *MemKVStore) Remove(key []byte) (value []byte) {
 	val := m.m[string(key)]
+	// 从map中删除key对应的value
 	delete(m.m, string(key))
 	return val
 }
 
+//Model是一个含有key，value的数据结构
+/*
+type Model struct {
+	Key   data.Bytes
+	Value data.Bytes
+}
+
+*/
+//范围
 func (m *MemKVStore) List(start, end []byte, limit int) []Model {
 	keys := m.keysInRange(start, end)
 	if limit > 0 && len(keys) > 0 {
@@ -144,13 +156,20 @@ func (m *MemKVStore) Checkpoint() SimpleDB {
 	return NewMemKVCache(m)
 }
 
+// see if it points to us
+/*
+//MemKVCache is designed to wrap MemKVStore as a cache
+type MemKVCache struct {
+	store SimpleDB
+	cache *MemKVStore
+}
+*/
 func (m *MemKVStore) Commit(sub SimpleDB) error {
 	cache, ok := sub.(*MemKVCache)
 	if !ok {
 		return ErrNotASubTransaction()
 	}
 
-	// see if it points to us
 	ref, ok := cache.store.(*MemKVStore)
 	if !ok || ref != m {
 		return ErrNotASubTransaction()
@@ -161,6 +180,7 @@ func (m *MemKVStore) Commit(sub SimpleDB) error {
 	return nil
 }
 
+//判断key是不是在这个给定的start和end之间
 func (m *MemKVStore) keysInRange(start, end []byte) (res []string) {
 	s, e := string(start), string(end)
 	for k := range m.m {

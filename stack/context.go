@@ -105,7 +105,7 @@ func withIBC(ctx sdk.Context) sdk.Context {
 
 func secureCheck(h sdk.Checker, parent sdk.Context) sdk.Checker {
 	next := func(ctx sdk.Context, store state.SimpleDB, tx sdk.Tx) (res sdk.CheckResult, err error) {
-		if !parent.IsParent(ctx) {
+		if !parent.IsParent(ctx) { //保证来自正确的某个客户端
 			return res, errors.New("Passing in non-child Context")
 		}
 		return h.CheckTx(ctx, store, tx)

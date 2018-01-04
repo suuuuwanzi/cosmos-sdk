@@ -26,9 +26,9 @@ func (m *middleware) Name() string {
 
 func (m *middleware) wrapCtx(ctx sdk.Context) sdk.Context {
 	if m.allowIBC {
-		return withIBC(ctx)
+		return withIBC(ctx) //allow IBC permission
 	}
-	return withApp(ctx, m.space)
+	return withApp(ctx, m.space) // 不允许IBC，set application control
 }
 
 // CheckTx always returns an empty success tx
@@ -36,9 +36,8 @@ func (m *middleware) CheckTx(ctx sdk.Context, store state.SimpleDB, tx sdk.Tx) (
 	// make sure we pass in proper context to child
 	next := secureCheck(m.next, ctx)
 	// set the permissions for this app
-	ctx = m.wrapCtx(ctx)
-	store = stateSpace(store, m.space)
-
+	ctx = m.wrapCtx(ctx)               // su : set IBC perssion or application control
+	store = stateSpace(store, m.space) // stateSpace will unwrap any prefixStore and then add the prefix
 	return m.middleware.CheckTx(ctx, store, tx, next)
 }
 
@@ -94,8 +93,8 @@ func (b builder) wrap(next sdk.Handler) sdk.Handler {
 
 // Stack is the entire application stack
 type Stack struct {
-	middles          []builder
-	handler          sdk.Handler
+	middles     []builder
+	handler     sdk.Handler
 	sdk.Handler // the compiled version, which we expose
 }
 
